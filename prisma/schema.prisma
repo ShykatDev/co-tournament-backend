@@ -1,0 +1,119 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum MatchStatus {
+  UPCOMING
+  ONGOING
+  FINISHED
+}
+
+enum TournamentStatus {
+  UPCOMING
+  LIVE
+  FINISHED
+}
+
+model Tournament {
+  id        Int              @id @default(autoincrement())
+  name      String
+  logo      String
+  status    TournamentStatus @default(UPCOMING)
+  startDate DateTime
+  endDate   DateTime?
+  createdAt DateTime         @default(now())
+  matches   Match[]
+  points    PointTable[]
+  teams     Team[]
+  clubs     Club[]
+}
+
+model Club {
+  id   Int    @id @default(autoincrement())
+  name String
+  logo String
+
+  tournamentId Int
+  tournament   Tournament @relation(fields: [tournamentId], references: [id])
+
+  teams Team[]
+}
+
+model Team {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  clubId Int
+  club   Club @relation(fields: [clubId], references: [id])
+
+  tournamentId Int
+  tournament   Tournament @relation(fields: [tournamentId], references: [id])
+
+  players Player[]
+  points  PointTable?
+
+  matchesAsTeamA Match[] @relation("TeamA_Matches")
+  matchesAsTeamB Match[] @relation("TeamB_Matches")
+
+  createdAt DateTime @default(now())
+}
+
+model Player {
+  id         Int      @id @default(autoincrement())
+  name       String
+  profileImg String
+  tier       Int
+  teamId     Int
+  team       Team     @relation(fields: [teamId], references: [id])
+  createdAt  DateTime @default(now())
+}
+
+model Match {
+  id Int @id @default(autoincrement())
+
+  tournamentId Int
+  tournament   Tournament @relation(fields: [tournamentId], references: [id])
+
+  status      MatchStatus @default(UPCOMING)
+  scheduledAt DateTime
+
+  teamAId Int
+  teamBId Int
+
+  teamA Team @relation("TeamA_Matches", fields: [teamAId], references: [id])
+  teamB Team @relation("TeamB_Matches", fields: [teamBId], references: [id])
+
+  scoreA Int?
+  scoreB Int?
+
+  startedAt DateTime?
+  endedAt   DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@unique([tournamentId, teamAId, teamBId, scheduledAt])
+  @@index([teamAId])
+  @@index([teamBId])
+  @@index([tournamentId])
+}
+
+model PointTable {
+  id Int @id @default(autoincrement())
+
+  tournamentId Int
+  tournament   Tournament @relation(fields: [tournamentId], references: [id])
+
+  teamId Int  @unique
+  team   Team @relation(fields: [teamId], references: [id])
+
+  played     Int @default(0)
+  won        Int @default(0)
+  draw       Int @default(0)
+  lost       Int @default(0)
+  points     Int @default(0)
+  totalGoals Int @default(0)
+}
