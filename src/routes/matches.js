@@ -57,7 +57,6 @@ router.patch("/:id/start", async (req, res) => {
   }
 });
 
-
 // Finish match and update points + totalGoals
 router.post("/:id/finish", async (req, res) => {
   const matchId = Number(req.params.id);
@@ -109,7 +108,6 @@ router.post("/:id/finish", async (req, res) => {
   }
 });
 
-
 async function updatePoints(tournamentId, teamAId, teamBId, scoreA, scoreB) {
   // Team A
   await prisma.pointTable.upsert({
@@ -157,7 +155,6 @@ async function updatePoints(tournamentId, teamAId, teamBId, scoreA, scoreB) {
     },
   });
 }
-
 
 router.get("/", async (req, res) => {
   try {
@@ -222,6 +219,13 @@ router.get("/live", async (req, res) => {
             players: true,
           },
         },
+        points: {
+          select: {
+            totalGoals: true,
+            win: true,
+            lost: true,
+          },
+        },
       },
       orderBy: { scheduledAt: "asc" }, // in case multiple ongoing matches
     });
@@ -232,7 +236,6 @@ router.get("/live", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 router.get("/upcoming", async (req, res) => {
   try {
@@ -272,7 +275,5 @@ router.get("/upcoming", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
-
 
 module.exports = router;
