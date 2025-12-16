@@ -209,6 +209,13 @@ router.get("/live", async (req, res) => {
             name: true,
             club: true,
             players: true,
+            points: {
+              select: {
+                won: true,
+                draw: true,
+                totalGoals: true,
+              },
+            },
           },
         },
         teamB: {
@@ -217,13 +224,13 @@ router.get("/live", async (req, res) => {
             name: true,
             club: true,
             players: true,
-          },
-        },
-        points: {
-          select: {
-            totalGoals: true,
-            win: true,
-            lost: true,
+            points: {
+              select: {
+                won: true,
+                draw: true,
+                totalGoals: true,
+              },
+            },
           },
         },
       },
