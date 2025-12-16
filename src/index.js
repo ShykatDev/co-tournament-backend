@@ -5,6 +5,9 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Enable CORS for all origins
+app.use(cors());
+
 app.get("/health", (_, res) => res.send("ok"));
 
 // Import routes
