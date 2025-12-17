@@ -110,10 +110,15 @@ model PointTable {
   teamId Int  @unique
   team   Team @relation(fields: [teamId], references: [id])
 
-  played     Int @default(0)
-  won        Int @default(0)
-  draw       Int @default(0)
-  lost       Int @default(0)
-  points     Int @default(0)
-  totalGoals Int @default(0)
+  played      Int @default(0)
+  won         Int @default(0)
+  draw        Int @default(0)
+  lost        Int @default(0)
+  points      Int @default(0)
+  totalGoals  Int @default(0)
+  goalFor     Int @default(0)
+  goalAgainst Int @default(0)
+  goalDiff    Int @default(0)
+
+  @@unique([teamId, tournamentId])
 }

@@ -21,7 +21,11 @@ router.get("/:tournamentId", async (req, res) => {
         draw: true,
         lost: true,
         points: true,
-        totalGoals: true
+        totalGoals: true,
+        goalAgainst: true,
+        goalDiff: true,
+        goalFor: true,
+        played: true
       },
       orderBy: [
         { points: "desc" },

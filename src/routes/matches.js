@@ -108,17 +108,31 @@ router.post("/:id/finish", async (req, res) => {
   }
 });
 
-async function updatePoints(tournamentId, teamAId, teamBId, scoreA, scoreB) {
+async function updatePoints(
+  tournamentId,
+  teamAId,
+  teamBId,
+  scoreA,
+  scoreB
+) {
   // Team A
   await prisma.pointTable.upsert({
-    where: { teamId: teamAId },
+    where: {
+      teamId_tournamentId: {
+        teamId: teamAId,
+        tournamentId,
+      },
+    },
     update: {
       played: { increment: 1 },
       won: scoreA > scoreB ? { increment: 1 } : undefined,
       draw: scoreA === scoreB ? { increment: 1 } : undefined,
       lost: scoreA < scoreB ? { increment: 1 } : undefined,
       points: { increment: scoreA > scoreB ? 3 : scoreA === scoreB ? 1 : 0 },
-      totalGoals: { increment: scoreA }, // <-- increment total goals
+      goalFor: { increment: scoreA },
+      goalAgainst: { increment: scoreB },
+      totalGoals: { increment: scoreA },
+      goalDiff: { increment: scoreA - scoreB },
     },
     create: {
       tournamentId,
@@ -128,20 +142,31 @@ async function updatePoints(tournamentId, teamAId, teamBId, scoreA, scoreB) {
       draw: scoreA === scoreB ? 1 : 0,
       lost: scoreA < scoreB ? 1 : 0,
       points: scoreA > scoreB ? 3 : scoreA === scoreB ? 1 : 0,
-      totalGoals: scoreA, // <-- initial total goals
+      goalFor: scoreA,
+      goalAgainst: scoreB,
+      goalDiff: scoreA - scoreB,
+      totalGoals: scoreA,
     },
   });
 
   // Team B
   await prisma.pointTable.upsert({
-    where: { teamId: teamBId },
+    where: {
+      teamId_tournamentId: {
+        teamId: teamBId,
+        tournamentId,
+      },
+    },
     update: {
       played: { increment: 1 },
       won: scoreB > scoreA ? { increment: 1 } : undefined,
       draw: scoreA === scoreB ? { increment: 1 } : undefined,
       lost: scoreB < scoreA ? { increment: 1 } : undefined,
       points: { increment: scoreB > scoreA ? 3 : scoreA === scoreB ? 1 : 0 },
+      goalFor: { increment: scoreB },
+      goalAgainst: { increment: scoreA },
       totalGoals: { increment: scoreB },
+      goalDiff: { increment: scoreB - scoreA },
     },
     create: {
       tournamentId,
@@ -151,6 +176,9 @@ async function updatePoints(tournamentId, teamAId, teamBId, scoreA, scoreB) {
       draw: scoreA === scoreB ? 1 : 0,
       lost: scoreB < scoreA ? 1 : 0,
       points: scoreB > scoreA ? 3 : scoreA === scoreB ? 1 : 0,
+      goalFor: scoreB,
+      goalAgainst: scoreA,
+      goalDiff: scoreB - scoreA,
       totalGoals: scoreB,
     },
   });
@@ -234,10 +262,54 @@ router.get("/live", async (req, res) => {
           },
         },
       },
-      orderBy: { scheduledAt: "asc" }, // in case multiple ongoing matches
+      orderBy: { scheduledAt: "asc" }, 
     });
 
-    res.json({ ongoingMatch });
+    const fistUpcomingMatch = await prisma.match.findFirst({
+      where: { status: "UPCOMING" },
+      select: {
+        id: true,
+        tournamentId: true,
+        status: true,
+        scheduledAt: true,
+        scoreA: true,
+        scoreB: true,
+        startedAt: true,
+        teamA: {
+          select: {
+            id: true,
+            name: true,
+            club: true,
+            players: true,
+            points: {
+              select: {
+                won: true,
+                played: true,
+                totalGoals: true,
+              },
+            },
+          },
+        },
+        teamB: {
+          select: {
+            id: true,
+            name: true,
+            club: true,
+            players: true,
+            points: {
+              select: {
+                won: true,
+                played: true,
+                totalGoals: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: { scheduledAt: "asc" },
+    });
+
+    res.json({ ongoingMatch, upcomingMatch: fistUpcomingMatch });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
