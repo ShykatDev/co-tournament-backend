@@ -25,7 +25,7 @@ router.post("/", upload.single("logo"), async (req, res) => {
         endDate: endDate ? new Date(endDate) : null,
       },
     });
-    res.json(tournament);
+    res.status(201).json(tournament);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -34,7 +34,7 @@ router.post("/", upload.single("logo"), async (req, res) => {
 // List tournaments
 router.get("/", async (req, res) => {
   const tournaments = await prisma.tournament.findMany();
-  res.json(tournaments);
+  res.status(200).json(tournaments);
 });
 
 module.exports = router;

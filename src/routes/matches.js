@@ -1,9 +1,10 @@
 const express = require("express");
 const prisma = require("../lib/prisma");
+const auth = require("../middleware/auth");
 const router = express.Router();
 
 // Create match
-router.post("/", async (req, res) => {
+router.post("/", auth, async (req, res) => {
   const { tournamentId, teamAId, teamBId, scheduledAt } = req.body;
   try {
     const match = await prisma.match.create({
@@ -14,14 +15,14 @@ router.post("/", async (req, res) => {
         scheduledAt: new Date(scheduledAt),
       },
     });
-    res.json(match);
+    res.status(201).json(match);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
 // Start match
-router.patch("/:id/start", async (req, res) => {
+router.patch("/:id/start", auth, async (req, res) => {
   try {
     const matchId = Number(req.params.id);
     if (isNaN(matchId)) {
@@ -50,7 +51,7 @@ router.patch("/:id/start", async (req, res) => {
       },
     });
 
-    res.json({ message: "Match started", match: updatedMatch });
+    res.status(200).json({ message: "Match started", match: updatedMatch });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
@@ -58,7 +59,7 @@ router.patch("/:id/start", async (req, res) => {
 });
 
 // Finish match and update points + totalGoals
-router.post("/:id/finish", async (req, res) => {
+router.post("/:id/finish", auth, async (req, res) => {
   const matchId = Number(req.params.id);
   const { scoreA, scoreB } = req.body;
 
@@ -101,20 +102,14 @@ router.post("/:id/finish", async (req, res) => {
       Number(scoreB)
     );
 
-    res.json(updatedMatch);
+    res.status(200).json(updatedMatch);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
   }
 });
 
-async function updatePoints(
-  tournamentId,
-  teamAId,
-  teamBId,
-  scoreA,
-  scoreB
-) {
+async function updatePoints(tournamentId, teamAId, teamBId, scoreA, scoreB) {
   // Team A
   await prisma.pointTable.upsert({
     where: {
@@ -212,7 +207,7 @@ router.get("/", async (req, res) => {
       orderBy: { scheduledAt: "asc" },
     });
 
-    res.json(matches);
+    res.status(200).json(matches);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
@@ -262,7 +257,7 @@ router.get("/live", async (req, res) => {
           },
         },
       },
-      orderBy: { scheduledAt: "asc" }, 
+      orderBy: { scheduledAt: "asc" },
     });
 
     const fistUpcomingMatch = await prisma.match.findFirst({
@@ -309,7 +304,7 @@ router.get("/live", async (req, res) => {
       orderBy: { scheduledAt: "asc" },
     });
 
-    res.json({ ongoingMatch, upcomingMatch: fistUpcomingMatch });
+    res.status(200).json({ ongoingMatch, upcomingMatch: fistUpcomingMatch });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
@@ -348,7 +343,34 @@ router.get("/upcoming", async (req, res) => {
       orderBy: { scheduledAt: "asc" },
     });
 
-    res.json({ upcomingMatches });
+    res.status(200).json({ upcomingMatches });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.delete("/:id", auth, async (req, res) => {
+  try {
+    const matchId = Number(req.params.id);
+
+    if (Number.isNaN(matchId)) {
+      return res.status(400).json({ error: "Invalid match id" });
+    }
+
+    const match = await prisma.match.findUnique({
+      where: { id: matchId },
+    });
+
+    if (!match) {
+      return res.status(404).json({ error: "Match not found" });
+    }
+
+    await prisma.match.delete({
+      where: { id: matchId },
+    });
+
+    res.status(200).json({ message: "Deleted successfully" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });

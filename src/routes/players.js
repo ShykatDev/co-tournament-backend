@@ -29,7 +29,7 @@ router.post("/", upload.single("profileImg"), async (req, res) => {
         tier: Number(tier),
       },
     });
-    res.json(player);
+    res.status(200).json(player);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -37,7 +37,7 @@ router.post("/", upload.single("profileImg"), async (req, res) => {
 
 router.get("/", async (req, res) => {
   const players = await prisma.player.findMany();
-  res.json(players);
+  res.status(200).json(players);
 });
 
 module.exports = router;

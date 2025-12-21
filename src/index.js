@@ -1,6 +1,9 @@
 const express = require("express")
 const cors = require("cors");
 require("dotenv").config();
+const auth = require('./middleware/auth')
+
+
 const app = express();
 
 app.use(express.json());
@@ -9,7 +12,7 @@ app.use(express.urlencoded({ extended: true }));
 // Enable CORS for all origins
 app.use(cors());
 
-app.get("/health", (_, res) => res.send("ok"));
+app.get("/health", auth, (_, res) => res.send("ok"));
 
 // Import routes
 const tournamentsRoutes = require("./routes/tournaments");
@@ -18,6 +21,7 @@ const playersRoutes = require("./routes/players");
 const matchesRoutes = require("./routes/matches");
 const pointsRoutes = require("./routes/points");
 const clubRoutes = require("./routes/club");
+const adminRoutes = require("./routes/user");
 
 app.use("/tournaments", tournamentsRoutes);
 app.use("/club", clubRoutes);
@@ -25,6 +29,7 @@ app.use("/teams", teamsRoutes);
 app.use("/players", playersRoutes);
 app.use("/matches", matchesRoutes);
 app.use("/points", pointsRoutes);
+app.use("/", adminRoutes);
 
 
 app.listen(8000, () => console.log("Server running"));

@@ -62,7 +62,7 @@ router.get("/", async (req, res) => {
       }
     },
   });
-  res.json(teams);
+  res.status(200).json(teams);
 });
 
 module.exports = router;

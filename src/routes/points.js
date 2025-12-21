@@ -31,7 +31,7 @@ router.get("/:tournamentId", async (req, res) => {
         { points: "desc" },
       ],
     });
-    res.json(table);
+    res.status(200).json(table);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
