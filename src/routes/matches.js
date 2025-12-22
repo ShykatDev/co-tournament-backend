@@ -181,7 +181,22 @@ async function updatePoints(tournamentId, teamAId, teamBId, scoreA, scoreB) {
 
 router.get("/", async (req, res) => {
   try {
+    const { teamId } = req.query;
+
+    const where = {};
+
+    if (teamId) {
+      const id = Number(teamId);
+
+      if (Number.isNaN(id)) {
+        return res.status(400).json({ error: "Invalid teamId" });
+      }
+
+      where.OR = [{ teamAId: id }, { teamBId: id }];
+    }
+
     const matches = await prisma.match.findMany({
+      where,
       select: {
         id: true,
         tournamentId: true,
@@ -191,6 +206,7 @@ router.get("/", async (req, res) => {
         scoreB: true,
         teamA: {
           select: {
+            id: true,
             name: true,
             club: true,
             players: true,
@@ -198,6 +214,7 @@ router.get("/", async (req, res) => {
         },
         teamB: {
           select: {
+            id: true,
             name: true,
             club: true,
             players: true,
@@ -213,6 +230,7 @@ router.get("/", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 router.get("/live", async (req, res) => {
   try {
