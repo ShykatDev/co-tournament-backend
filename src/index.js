@@ -19,7 +19,7 @@ app.use(cors({
   credentials: true, // allow cookies
 }));
 
-app.get("/health", auth, (_, res) => res.send("ok"));
+app.get("/health", (_, res) => res.send("ok"));
 
 // Import routes
 const tournamentsRoutes = require("./routes/tournaments");
