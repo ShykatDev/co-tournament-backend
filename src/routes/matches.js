@@ -332,7 +332,7 @@ router.get("/live", async (req, res) => {
 router.get("/upcoming", async (req, res) => {
   try {
     const upcomingMatches = await prisma.match.findMany({
-      where: { status: "UPCOMING", scheduledAt: { gt: new Date() } },
+      where: { status: "UPCOMING" },
       select: {
         id: true,
         status: true,
