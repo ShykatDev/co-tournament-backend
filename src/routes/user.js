@@ -63,17 +63,21 @@ router.post("/login", async (req, res) => {
       process.env.JWT_REFRESH_SECRECT,
       { expiresIn: "7d" }
     );
+
+    res.cookie("access_token", accesstoken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+  });
+
     res.status(200).json({
-      accesstoken,
-      refreshtoken,
+      message: 'Login Success'
     });
   } catch (err) {
     res.status(500).json({
       message: "Something went wrong!",
     });
   }
-
-  //   console.log(user);
 });
 
 module.exports = router;
