@@ -46,13 +46,13 @@ router.post("/login", async (req, res) => {
 
     // JWT
     const accesstoken = jwt.sign(
-      { id: user.id, email: user.email, name: user.name }
+      { id: user.id, email: user.email, name: user.name },
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
 
     const refreshtoken = jwt.sign(
-      { id: user.id, email: user.email, name: user.name }
+      { id: user.id, email: user.email, name: user.name },
       process.env.JWT_REFRESH_SECRECT,
       { expiresIn: "7d" }
     );
