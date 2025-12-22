@@ -10,7 +10,14 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Enable CORS for all origins
-app.use(cors());
+app.use(cors({
+  origin: (origin, callback) => {
+    // allow requests with no origin (like Postman) or from any domain
+    if (!origin) return callback(null, true);
+    return callback(null, true);
+  },
+  credentials: true, // allow cookies
+}));
 
 app.get("/health", auth, (_, res) => res.send("ok"));
 
