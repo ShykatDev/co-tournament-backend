@@ -80,4 +80,16 @@ router.post("/login", async (req, res) => {
   }
 });
 
+// Logout route
+app.post("/logout", (req, res) => {
+  res.clearCookie("access_token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+  });
+
+  res.status(200).json({ message: "Logged out successfully" });
+});
+
+
 module.exports = router;
