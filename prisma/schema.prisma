@@ -12,6 +12,12 @@ enum MatchStatus {
   FINISHED
 }
 
+enum MatchTypes {
+  PRESEASON
+  SEMIFINAL
+  FINAL
+}
+
 enum TournamentStatus {
   UPCOMING
   LIVE
@@ -92,7 +98,9 @@ model Match {
   tournamentId Int
   tournament   Tournament @relation(fields: [tournamentId], references: [id])
 
-  status      MatchStatus @default(UPCOMING)
+  status    MatchStatus @default(UPCOMING)
+  matchType MatchTypes  @default(PRESEASON)
+
   scheduledAt DateTime
 
   teamAId Int

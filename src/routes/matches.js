@@ -5,13 +5,14 @@ const router = express.Router();
 
 // Create match
 router.post("/", auth, async (req, res) => {
-  const { tournamentId, teamAId, teamBId, scheduledAt } = req.body;
+  const { tournamentId, teamAId, teamBId, scheduledAt, matchType } = req.body;
   try {
     const match = await prisma.match.create({
       data: {
         tournamentId,
         teamAId,
         teamBId,
+        matchType,
         scheduledAt: new Date(scheduledAt),
       },
     });
