@@ -3,6 +3,13 @@ const prisma = require("../lib/prisma");
 const auth = require("../middleware/auth");
 const router = express.Router();
 
+function getMatchResult(scoreA, scoreB) {
+  if (scoreA === null || scoreB === null) return "pending";
+  if (scoreA === scoreB) return "draw";
+  return scoreA > scoreB ? "teamA" : "teamB";
+}
+
+
 // Create match
 router.post("/", auth, async (req, res) => {
   const { tournamentId, teamAId, teamBId, scheduledAt, matchType } = req.body;
@@ -188,7 +195,6 @@ router.get("/", async (req, res) => {
 
     if (teamId) {
       const id = Number(teamId);
-
       if (Number.isNaN(id)) {
         return res.status(400).json({ error: "Invalid teamId" });
       }
@@ -206,31 +212,49 @@ router.get("/", async (req, res) => {
         scoreA: true,
         scoreB: true,
         teamA: {
-          select: {
-            id: true,
-            name: true,
-            club: true,
-            players: true,
-          },
+          select: { id: true, name: true, club: true, players: true },
         },
         teamB: {
-          select: {
-            id: true,
-            name: true,
-            club: true,
-            players: true,
-          },
+          select: { id: true, name: true, club: true, players: true },
         },
       },
       orderBy: { scheduledAt: "asc" },
     });
 
-    res.status(200).json(matches);
+    const result = matches.map((match) => {
+      const baseResult = getMatchResult(match.scoreA, match.scoreB);
+
+      let resultForTeam = null;
+
+      if (teamId && baseResult !== "pending") {
+        const id = Number(teamId);
+
+        if (baseResult === "draw") {
+          resultForTeam = "draw";
+        } else if (
+          (baseResult === "teamA" && match.teamA.id === id) ||
+          (baseResult === "teamB" && match.teamB.id === id)
+        ) {
+          resultForTeam = "win";
+        } else {
+          resultForTeam = "loss";
+        }
+      }
+
+      return {
+        ...match,
+        winning_team: baseResult,
+        result:resultForTeam
+      };
+    });
+
+    res.status(200).json(result);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
   }
 });
+
 
 
 router.get("/live", async (req, res) => {
