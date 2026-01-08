@@ -211,6 +211,7 @@ router.get("/", async (req, res) => {
         scheduledAt: true,
         scoreA: true,
         scoreB: true,
+        matchType: true,
         teamA: {
           select: { id: true, name: true, club: true, players: true },
         },
