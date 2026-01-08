@@ -256,7 +256,78 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.get("/brackets", async (req, res) => {
+  try {
+    const { teamId } = req.query;
 
+    const where = {
+      matchType: {
+        not: "PRESEASON",
+      },
+    };
+
+    if (teamId) {
+      const id = Number(teamId);
+      if (Number.isNaN(id)) {
+        return res.status(400).json({ error: "Invalid teamId" });
+      }
+
+      where.OR = [{ teamAId: id }, { teamBId: id }];
+    }
+
+    const matches = await prisma.match.findMany({
+      where,
+      select: {
+        id: true,
+        tournamentId: true,
+        status: true,
+        scheduledAt: true,
+        scoreA: true,
+        scoreB: true,
+        matchType: true,
+        teamA: {
+          select: { id: true, name: true, club: true, players: true },
+        },
+        teamB: {
+          select: { id: true, name: true, club: true, players: true },
+        },
+      },
+      orderBy: { scheduledAt: "asc" },
+    });
+
+    const result = matches.map((match) => {
+      const baseResult = getMatchResult(match.scoreA, match.scoreB);
+
+      let resultForTeam = null;
+
+      if (teamId && baseResult !== "pending") {
+        const id = Number(teamId);
+
+        if (baseResult === "draw") {
+          resultForTeam = "draw";
+        } else if (
+          (baseResult === "teamA" && match.teamA.id === id) ||
+          (baseResult === "teamB" && match.teamB.id === id)
+        ) {
+          resultForTeam = "win";
+        } else {
+          resultForTeam = "loss";
+        }
+      }
+
+      return {
+        ...match,
+        winning_team: baseResult,
+        result:resultForTeam
+      };
+    });
+
+    res.status(200).json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
 
 router.get("/live", async (req, res) => {
   try {
