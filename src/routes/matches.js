@@ -9,7 +9,6 @@ function getMatchResult(scoreA, scoreB) {
   return scoreA > scoreB ? "teamA" : "teamB";
 }
 
-
 // Create match
 router.post("/", auth, async (req, res) => {
   const { tournamentId, teamAId, teamBId, scheduledAt, matchType } = req.body;
@@ -107,7 +106,7 @@ router.post("/:id/finish", auth, async (req, res) => {
       match.teamAId,
       match.teamBId,
       Number(scoreA),
-      Number(scoreB)
+      Number(scoreB),
     );
 
     res.status(200).json(updatedMatch);
@@ -208,15 +207,34 @@ router.get("/", async (req, res) => {
         id: true,
         tournamentId: true,
         status: true,
-        scheduledAt: true,
         scoreA: true,
         scoreB: true,
         matchType: true,
         teamA: {
-          select: { id: true, name: true, club: true, players: true },
+          select: {
+            id: true,
+            name: true,
+            club: {
+              select: {
+                id: true,
+                name: true,
+                logo: true,
+              },
+            },
+          },
         },
         teamB: {
-          select: { id: true, name: true, club: true, players: true },
+          select: {
+            id: true,
+            name: true,
+            club: {
+              select: {
+                id: true,
+                name: true,
+                logo: true,
+              },
+            },
+          },
         },
       },
       orderBy: { scheduledAt: "asc" },
@@ -245,7 +263,7 @@ router.get("/", async (req, res) => {
       return {
         ...match,
         winning_team: baseResult,
-        result:resultForTeam
+        result: resultForTeam,
       };
     });
 
@@ -318,7 +336,7 @@ router.get("/brackets", async (req, res) => {
       return {
         ...match,
         winning_team: baseResult,
-        result:resultForTeam
+        result: resultForTeam,
       };
     });
 
