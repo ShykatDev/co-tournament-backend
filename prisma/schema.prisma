@@ -27,15 +27,17 @@ enum TournamentStatus {
 enum Role {
   ADMIN
   EDITOR
+  MEMBER
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String   @unique
-  password  String
-  role      Role
-  createdAt DateTime @default(now())
+  id          Int          @id @default(autoincrement())
+  name        String
+  email       String       @unique
+  password    String
+  role        Role
+  createdAt   DateTime     @default(now())
+  predictions Prediction[]
 }
 
 model Tournament {
@@ -115,7 +117,8 @@ model Match {
   startedAt DateTime?
   endedAt   DateTime?
 
-  createdAt DateTime @default(now())
+  createdAt   DateTime     @default(now())
+  predictions Prediction[]
 
   @@index([teamAId])
   @@index([teamBId])
@@ -142,4 +145,34 @@ model PointTable {
   goalDiff    Int @default(0)
 
   @@unique([teamId, tournamentId])
+}
+
+enum PREDICTIONRESULT {
+  EXACT
+  WINNER
+  DRAW
+  WRONG
+}
+
+model Prediction {
+  id     Int  @id @default(autoincrement())
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  matchId       Int
+  match         Match @relation(fields: [matchId], references: [id])
+  predictScoreA Int?
+  predictScoreB Int?
+  point         Int   @default(0)
+
+  isLocked Boolean @default(false)
+
+  result PREDICTIONRESULT?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, matchId])
+  @@index([matchId])
+  @@index([userId])
 }

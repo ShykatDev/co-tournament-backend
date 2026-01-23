@@ -32,6 +32,7 @@ const matchesRoutes = require("./routes/matches");
 const pointsRoutes = require("./routes/points");
 const clubRoutes = require("./routes/club");
 const adminRoutes = require("./routes/user");
+const predictionRoutes = require("./routes/prediction");
 
 app.use("/tournaments", tournamentsRoutes);
 app.use("/club", clubRoutes);
@@ -39,6 +40,7 @@ app.use("/teams", teamsRoutes);
 app.use("/players", playersRoutes);
 app.use("/matches", matchesRoutes);
 app.use("/points", pointsRoutes);
+app.use("/prediction", predictionRoutes);
 app.use("/", adminRoutes);
 
 
