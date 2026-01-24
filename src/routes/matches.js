@@ -49,14 +49,30 @@ router.patch("/:id/start", auth, async (req, res) => {
     }
 
     // Update status
-    const updatedMatch = await prisma.match.update({
-      where: { id: matchId },
-      data: { status: "ONGOING" },
-      include: {
-        teamA: { include: { players: true } },
-        teamB: { include: { players: true } },
-      },
-    });
+    // const updatedMatch = await prisma.match.update({
+    //   where: { id: matchId },
+    //   data: { status: "ONGOING" },
+    //   include: {
+    //     teamA: { include: { players: true } },
+    //     teamB: { include: { players: true } },
+    //   },
+    // });
+
+    const [updatedMatch] = await prisma.$transaction([
+      prisma.match.update({
+        where: { id: matchId },
+        data: { status: "ONGOING" },
+        include: {
+          teamA: { include: { players: true } },
+          teamB: { include: { players: true } },
+        },
+      }),
+
+      prisma.prediction.updateMany({
+        where: { matchId },
+        data: { isLocked: true },
+      }),
+    ]);
 
     res.status(200).json({ message: "Match started", match: updatedMatch });
   } catch (err) {
